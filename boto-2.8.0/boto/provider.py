@@ -36,6 +36,8 @@ from boto.gs.acl import CannedACLStrings as CannedGSACLStrings
 from boto.s3.acl import CannedACLStrings as CannedS3ACLStrings
 from boto.s3.acl import Policy
 
+unicode = str
+
 
 HEADER_PREFIX_KEY = 'header_prefix'
 METADATA_PREFIX_KEY = 'metadata_prefix'

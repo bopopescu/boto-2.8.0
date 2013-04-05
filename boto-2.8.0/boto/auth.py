@@ -83,9 +83,9 @@ class HmacKeys(object):
 
     def update_provider(self, provider):
         self._provider = provider
-        self._hmac = hmac.new(self._provider.secret_key, digestmod=sha)
+        self._hmac = hmac.new(self._provider.secret_key.encode('utf-8'), digestmod=sha)
         if sha256:
-            self._hmac_256 = hmac.new(self._provider.secret_key,
+            self._hmac_256 = hmac.new(self._provider.secret_key.encode('utf-8'),
                                       digestmod=sha256)
         else:
             self._hmac_256 = None
@@ -101,13 +101,13 @@ class HmacKeys(object):
             digestmod = sha256
         else:
             digestmod = sha
-        return hmac.new(self._provider.secret_key,
+        return hmac.new(self._provider.secret_key.encode('utf-8'),
                         digestmod=digestmod)
 
     def sign_string(self, string_to_sign):
         new_hmac = self._get_hmac()
-        new_hmac.update(string_to_sign)
-        return base64.encodestring(new_hmac.digest()).strip()
+        new_hmac.update(string_to_sign if type(string_to_sign) == bytes else string_to_sign.encode('utf-8'))
+        return base64.encodebytes(new_hmac.digest()).decode().strip()
 
     def __getstate__(self):
         pickled_dict = copy.copy(self.__dict__)
@@ -155,14 +155,17 @@ class HmacAuthV1Handler(AuthHandler, HmacKeys):
         if 'Date' not in headers:
             headers['Date'] = formatdate(usegmt=True)
 
+        boto.log.debug( ">>>>DATE: %s" % headers['Date'])
+
         if self._provider.security_token:
             key = self._provider.security_token_header
             headers[key] = self._provider.security_token
         string_to_sign = boto.utils.canonical_string(method, auth_path,
                                                      headers, None,
                                                      self._provider)
-        boto.log.debug('StringToSign:\n%s' % string_to_sign)
+        boto.log.debug('StringToSign(auth):\n%s' % string_to_sign)
         b64_hmac = self.sign_string(string_to_sign)
+        boto.log.debug('Signature(base64):\n%s' % b64_hmac)
         auth_hdr = self._provider.auth_header
         headers['Authorization'] = ("%s %s:%s" %
                                     (auth_hdr,
@@ -541,7 +544,7 @@ class QuerySignatureV0AuthHandler(QuerySignatureHelper, AuthHandler):
             val = boto.utils.get_utf8_value(params[key])
             pairs.append(key + '=' + urllib.quote(val))
         qs = '&'.join(pairs)
-        return (qs, base64.b64encode(hmac.digest()))
+        return (qs, base64.b64encode(hmac.digest()).decode())
 
 
 class QuerySignatureV1AuthHandler(QuerySignatureHelper, AuthHandler):
@@ -569,7 +572,7 @@ class QuerySignatureV1AuthHandler(QuerySignatureHelper, AuthHandler):
             hmac.update(val)
             pairs.append(key + '=' + urllib.quote(val))
         qs = '&'.join(pairs)
-        return (qs, base64.b64encode(hmac.digest()))
+        return (qs, base64.b64encode(hmac.digest()).decode())
 
 
 class QuerySignatureV2AuthHandler(QuerySignatureHelper, AuthHandler):
@@ -597,7 +600,7 @@ class QuerySignatureV2AuthHandler(QuerySignatureHelper, AuthHandler):
         string_to_sign += qs
         boto.log.debug('string_to_sign: %s' % string_to_sign)
         hmac.update(string_to_sign)
-        b64 = base64.b64encode(hmac.digest())
+        b64 = base64.b64encode(hmac.digest()).decode()
         boto.log.debug('len(b64)=%d' % len(b64))
         boto.log.debug('base64 encoded digest: %s' % b64)
         return (qs, b64)

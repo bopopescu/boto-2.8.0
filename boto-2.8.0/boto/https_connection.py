@@ -19,7 +19,7 @@
 
 """Extensions to allow HTTPS requests with SSL certificate validation."""
 
-import httplib
+import http.client as httplib
 import re
 import socket
 import ssl

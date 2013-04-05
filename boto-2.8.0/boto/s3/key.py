@@ -24,8 +24,8 @@
 import mimetypes
 import os
 import re
-import rfc822
-import StringIO
+import email.utils as rfc822
+import io
 import base64
 import binascii
 import math
@@ -42,6 +42,10 @@ try:
 except ImportError:
     from md5 import md5
 
+unicode = str
+
+class StringIO:
+    StringIO = io.BytesIO
 
 class Key(object):
     """
@@ -161,7 +165,7 @@ class Key(object):
         from just having a precalculated md5_hexdigest.
         """
         digest = binascii.unhexlify(md5_hexdigest)
-        base64md5 = base64.encodestring(digest)
+        base64md5 = base64.encodestring(digest).decode()
         if base64md5[-1] == '\n':
             base64md5 = base64md5[0:-1]
         return (md5_hexdigest, base64md5)
@@ -812,7 +816,7 @@ class Key(object):
         else:
             headers['Content-Type'] = self.content_type
         if self.base64md5:
-            headers['Content-MD5'] = self.base64md5
+            headers['Content-MD5'] = (self.base64md5.decode() if type(self.base64md5) == bytes else self.base64md5).strip()
         if chunked_transfer:
             headers['Transfer-Encoding'] = 'chunked'
             #if not self.base64md5:
@@ -1090,7 +1094,7 @@ class Key(object):
                     # twice while transferring.
                     if (re.match('^"[a-fA-F0-9]{32}"$', key.etag)):
                         etag = key.etag.strip('"')
-                        md5 = (etag, base64.b64encode(binascii.unhexlify(etag)))
+                        md5 = (etag, base64.b64encode(binascii.unhexlify(etag)).decode())
                 if not md5:
                     # compute_md5() and also set self.size to actual
                     # size of the bytes read computing the md5.
@@ -1245,9 +1249,10 @@ class Key(object):
             be encrypted on the server-side by S3 and will be stored
             in an encrypted form while at rest in S3.
         """
-        if isinstance(s, unicode):
-            s = s.encode("utf-8")
-        fp = StringIO.StringIO(s)
+        #if isinstance(s, unicode):
+        #    s = s.encode("utf-8")
+
+        fp = StringIO.StringIO(s.encode('utf-8'))
         r = self.set_contents_from_file(fp, headers, replace, cb, num_cb,
                                         policy, md5, reduced_redundancy,
                                         encrypt_key=encrypt_key)

@@ -20,9 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-import StringIO, os, re
+import os, re
+from io import StringIO as StringIO
 import warnings
-import ConfigParser
+import configparser as ConfigParser
+ConfigParser.SafeConfigParser = ConfigParser.ConfigParser
 import boto
 
 # If running in Google App Engine there is no "user" and
@@ -182,7 +184,7 @@ class Config(ConfigParser.SafeConfigParser):
     def dump(self):
         s = StringIO.StringIO()
         self.write(s)
-        print s.getvalue()
+        print( s.getvalue() )
 
     def dump_safe(self, fp=None):
         if not fp:

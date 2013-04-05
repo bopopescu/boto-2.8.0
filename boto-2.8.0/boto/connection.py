@@ -42,25 +42,24 @@
 """
 Handles basic connections to AWS
 """
-
 from __future__ import with_statement
 import base64
 import errno
-import httplib
+import http.client as httplib
 import os
-import Queue
+#import Queue
 import random
 import re
 import socket
 import sys
 import time
-import urllib
-import urlparse
+import urllib.parse as urllib
+urlparse = urllib
 import xml.sax
 import copy
 
-import auth
-import auth_handler
+import boto.auth as auth
+import boto.auth_handler as auth_handler
 import boto
 import boto.utils
 import boto.handler
@@ -72,20 +71,21 @@ from boto.exception import BotoServerError
 from boto.provider import Provider
 from boto.resultset import ResultSet
 
-HAVE_HTTPS_CONNECTION = False
-try:
-    import ssl
-    from boto import https_connection
-    # Google App Engine runs on Python 2.5 so doesn't have ssl.SSLError.
-    if hasattr(ssl, 'SSLError'):
-        HAVE_HTTPS_CONNECTION = True
-except ImportError:
-    pass
+import ssl
+import boto.https_connection as https_connection
+# Google App Engine runs on Python 2.5 so doesn't have ssl.SSLError.
+if hasattr(ssl, 'SSLError'):
+    HAVE_HTTPS_CONNECTION = True
+else:
+    raise Exception( "No SSLError")
 
 try:
     import threading
 except ImportError:
     import dummy_threading as threading
+
+long = int
+unicode = str
 
 ON_APP_ENGINE = all(key in os.environ for key in (
     'USER_IS_ADMIN', 'CURRENT_VERSION_ID', 'APPLICATION_ID'))
@@ -369,8 +369,10 @@ class HTTPRequest(object):
     def authorize(self, connection, **kwargs):
         for key in self.headers:
             val = self.headers[key]
-            if isinstance(val, unicode):
-                self.headers[key] = urllib.quote_plus(val.encode('utf-8'))
+            #>>>if isinstance(val, unicode):
+            #>>>    self.headers[key] = urllib.quote_plus(val.encode('utf-8'))
+
+
 
         connection._auth_handler.add_auth(self, **kwargs)
 
@@ -664,8 +666,8 @@ class AWSAuthConnection(object):
                 self.proxy_pass = config.get_value('Boto', 'proxy_pass', None)
 
         if not self.proxy_port and self.proxy:
-            print "http_proxy environment variable does not specify " \
-                "a port, using default"
+            print( "http_proxy environment variable does not specify " \
+                "a port, using default" )
             self.proxy_port = self.port
         self.use_proxy = (self.proxy != None)
 
@@ -871,7 +873,7 @@ class AWSAuthConnection(object):
                                                           scheme == 'https')
                     response = None
                     continue
-            except self.http_exceptions, e:
+            except self.http_exceptions as e:
                 for unretryable in self.http_unretryable_exceptions:
                     if isinstance(e, unretryable):
                         boto.log.debug(
@@ -927,6 +929,7 @@ class AWSAuthConnection(object):
         """Makes a request to the server, with stock multiple-retry logic."""
         if params is None:
             params = {}
+
         http_request = self.build_base_http_request(method, path, auth_path,
                                                     params, headers, data, host)
         return self._mexe(http_request, sender, override_num_retries)

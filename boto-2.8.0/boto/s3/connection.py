@@ -23,7 +23,7 @@
 # IN THE SOFTWARE.
 
 import xml.sax
-import urllib
+import urllib.parse as urllib
 import base64
 import time
 
@@ -485,6 +485,7 @@ class S3Connection(AWSAuthConnection):
             boto.log.debug('path=%s' % path)
             auth_path += '?' + query_args
             boto.log.debug('auth_path=%s' % auth_path)
+
         return AWSAuthConnection.make_request(self, method, path, headers,
                 data, host, auth_path, sender,
                 override_num_retries=override_num_retries)

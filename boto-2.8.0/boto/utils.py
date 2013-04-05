@@ -40,15 +40,15 @@ Some handy utility functions used by several classes.
 """
 
 import socket
-import urllib
-import urllib2
+#import urllib
+#import urllib2
 import imp
 import subprocess
-import StringIO
+#import StringIO
 import time
 import logging.handlers
 import boto
-import boto.provider
+#import boto.provider
 import tempfile
 import smtplib
 import datetime
@@ -65,6 +65,7 @@ try:
 except ImportError:
     from md5 import md5
 
+unicode = str
 
 try:
     import hashlib
@@ -210,7 +211,7 @@ def retry_url(url, retry_on_404=True, num_retries=10):
             result = r.read()
             resp = urllib2.urlopen(req)
             return resp.read()
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             # in 2.6 you use getcode(), in 2.5 and earlier you use code
             if hasattr(e, 'getcode'):
                 code = e.getcode()
@@ -218,9 +219,9 @@ def retry_url(url, retry_on_404=True, num_retries=10):
                 code = e.code
             if code == 404 and not retry_on_404:
                 return ''
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             raise e
-        except Exception, e:
+        except Exception as e:
             pass
         boto.log.exception('Caught exception reading instance data')
         time.sleep(2 ** i)
@@ -329,7 +330,7 @@ def get_instance_metadata(version='latest', url='http://169.254.169.254',
     try:
         return _get_instance_metadata('%s/%s/meta-data/' % (url, version),
                                       num_retries=num_retries)
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         return None
     finally:
         if timeout is not None:
@@ -356,7 +357,7 @@ def get_instance_identity(version='latest', url='http://169.254.169.254',
             if field:
                 iid[field] = val
         return iid
-    except urllib2.URLError, e:
+    except urllib2.URLError as e:
         return None
     finally:
         if timeout is not None:
@@ -918,7 +919,7 @@ def compute_hash(fp, buf_size=8192, size=None, hash_algorithm=md5):
         else:
             s = fp.read(buf_size)
     hex_digest = hash_obj.hexdigest()
-    base64_digest = base64.encodestring(hash_obj.digest())
+    base64_digest = base64.encodebytes(hash_obj.digest())
     if base64_digest[-1] == '\n':
         base64_digest = base64_digest[0:-1]
     # data_size based on bytes read.

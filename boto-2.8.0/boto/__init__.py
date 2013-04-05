@@ -32,7 +32,7 @@ import re
 import sys
 import logging
 import logging.config
-import urlparse
+import urllib.parse as urlparse
 from boto.exception import InvalidUriError
 
 __version__ = '2.8.0'

@@ -45,14 +45,14 @@ import boto.jsonresponse
 import boto.utils
 import xml.sax
 import xml.sax.saxutils
-import StringIO
-import urllib
+from io import StringIO
+import urllib.parse as urllib
 import re
 import base64
 from collections import defaultdict
 
 # as per http://goo.gl/BDuud (02/19/2011)
-
+unicode = str
 
 class S3WebsiteEndpointTranslate:
 
