@@ -909,7 +909,7 @@ def compute_hash(fp, buf_size=8192, size=None, hash_algorithm=md5):
     else:
         s = fp.read(buf_size)
     while s:
-        hash_obj.update( s.encode('utf-8') )
+        hash_obj.update( s if type(s) == bytes else s.encode('utf-8') )
         if size:
             size -= len(s)
             if size <= 0:
