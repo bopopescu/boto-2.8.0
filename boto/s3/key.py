@@ -1256,7 +1256,10 @@ class Key(object):
         #if isinstance(s, unicode):
         #    s = s.encode("utf-8")
 
-        fp = StringIO.StringIO(s.encode('utf-8'))
+        if isinstance(s, str):
+            s = s.encode("utf-8")
+
+        fp = StringIO.StringIO( s )
         r = self.set_contents_from_file(fp, headers, replace, cb, num_cb,
                                         policy, md5, reduced_redundancy,
                                         encrypt_key=encrypt_key)
