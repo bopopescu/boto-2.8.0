@@ -726,14 +726,14 @@ class Key(object):
                 chunk = fp.read(bytes_togo)
             else:
                 chunk = fp.read(self.BufferSize)
-
-            if type(chunk) != bytes:
-                chunk = chunk.encode('utf-8')
-
+                
             if spos is None:
                 # read at least something from a non-seekable fp.
                 self.read_from_stream = True
             while chunk:
+                if type(chunk) != bytes:
+                    chunk = chunk.encode('utf-8')
+
                 chunk_len = len(chunk)
                 data_len += chunk_len
                 if chunked_transfer:
